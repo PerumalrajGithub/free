@@ -17,23 +17,13 @@ pipelines:
           - aws configure set default.region us-east-2
           - echo "Logging in to AWS ECR..."
           - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 594699837196.dkr.ecr.us-east-2.amazonaws.com
-          
-          # Fetch the current build number from the environment or default to 1
-          - echo "Fetching the current build number..."
-          - BUILD_NUMBER=${BITBUCKET_BUILD_NUMBER:-1}
-          
-          # Increment the build number for this build
-          - BUILD_NUMBER=$((BUILD_NUMBER + 1))
-          
-          # Create a build tag with zero-padded format
-          - BUILD_TAG=$(printf "build-%02d" $BUILD_NUMBER)  # This will create build-01, build-02, etc.
-          
           - echo "Building Docker image..."
           - docker build -t developer:latest .  # Build with 'latest' tag
           - echo "Tagging Docker image..."
-          - docker tag developer:latest 594699837196.dkr.ecr.us-east-2.amazonaws.com/developer:$BUILD_TAG  # Tag with the build tag
+          - UNIQUE_TAG="${BITBUCKET_COMMIT:0:7}"  # Use the first 7 characters of the commit hash for a unique tag
+          - docker tag developer:latest 594699837196.dkr.ecr.us-east-2.amazonaws.com/developer:$UNIQUE_TAG  # Tag with the unique tag
           - echo "Pushing Docker image to ECR..."
-          - docker push 594699837196.dkr.ecr.us-east-2.amazonaws.com/developer:$BUILD_TAG  # Push using the build tag
+          - docker push 594699837196.dkr.ecr.us-east-2.amazonaws.com/developer:$UNIQUE_TAG  # Push using the unique tag
 
 definitions:
   services:
