@@ -1,0 +1,17 @@
+image: python:3.9
+
+pipelines:
+  default:
+    - step:
+        name: Build and Push Docker Image to ECR
+        caches:
+          - docker
+        script:
+          - echo "Building Docker image..."
+          - docker build -t python-app .
+          - echo "Tagging Docker image..."
+          - docker tag python-app:latest 594699837196.dkr.ecr.us-east-2.amazonaws.com/python-app:latest
+          - echo "Login to AWS ECR..."
+          - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 594699837196.dkr.ecr.us-east-2.amazonaws.com
+          - echo "Pushing Docker image to ECR..."
+          - docker push 594699837196.dkr.ecr.us-east-2.amazonaws.com/python-app:latest
