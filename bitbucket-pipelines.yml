@@ -1,29 +1,30 @@
 image: python:3.9
 
 pipelines:
-  default:
-    - step:
-        name: Build and Push Docker Image to ECR
-        services:
-          - docker
-        caches:
-          - docker
-        script:
-          - echo "Installing AWS CLI..."
-          - apt-get update && apt-get install -y awscli
-          - echo "Configuring AWS CLI..."
-          - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-          - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-          - aws configure set default.region us-east-2
-          - echo "Logging in to AWS ECR..."
-          - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 594699837196.dkr.ecr.us-east-2.amazonaws.com
-          - echo "Building Docker image..."
-          - docker build -t developer:latest .  # Build with 'latest' tag
-          - echo "Tagging Docker image..."
-          - UNIQUE_TAG="${BITBUCKET_COMMIT:0:7}"  # Use the first 7 characters of the commit hash for a unique tag
-          - docker tag developer:latest 594699837196.dkr.ecr.us-east-2.amazonaws.com/developer:$UNIQUE_TAG  # Tag with the unique tag
-          - echo "Pushing Docker image to ECR..."
-          - docker push 594699837196.dkr.ecr.us-east-2.amazonaws.com/developer:$UNIQUE_TAG  # Push using the unique tag
+  branches:
+    main:  # Only triggers for the main branch
+      - step:
+          name: Build and Push Docker Image to ECR
+          services:
+            - docker
+          caches:
+            - docker
+          script:
+            - echo "Installing AWS CLI..."
+            - apt-get update && apt-get install -y awscli
+            - echo "Configuring AWS CLI..."
+            - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+            - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+            - aws configure set default.region us-east-2
+            - echo "Logging in to AWS ECR..."
+            - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 594699837196.dkr.ecr.us-east-2.amazonaws.com
+            - echo "Building Docker image..."
+            - docker build -t developer:latest .  # Build with 'latest' tag
+            - echo "Tagging Docker image..."
+            - UNIQUE_TAG="${BITBUCKET_COMMIT:0:7}"  # Use the first 7 characters of the commit hash for a unique tag
+            - docker tag developer:latest 594699837196.dkr.ecr.us-east-2.amazonaws.com/developer:$UNIQUE_TAG  # Tag with the unique tag
+            - echo "Pushing Docker image to ECR..."
+            - docker push 594699837196.dkr.ecr.us-east-2.amazonaws.com/developer:$UNIQUE_TAG  # Push using the unique tag
 
 definitions:
   services:
