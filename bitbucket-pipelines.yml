@@ -9,6 +9,12 @@ pipelines:
         caches:
           - docker
         script:
+          - echo "Installing AWS CLI..."
+          - apt-get update && apt-get install -y awscli
+          - echo "Configuring AWS CLI..."
+          - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+          - aws configure set default.region us-east-2
           - echo "Building Docker image..."
           - docker build -t python-app .
           - echo "Tagging Docker image..."
